@@ -1,4 +1,4 @@
-function mostrarAlerta(mensaje, tipo = 'success') {
+function mostrarAlerta(mensaje, tipo) {
     const alertContainer = document.getElementById('alert-container');
 
     const config = {

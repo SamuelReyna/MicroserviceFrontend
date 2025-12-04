@@ -86,7 +86,7 @@
                     <table class="w-full border-collapse">
                         <c:if test ="${cuenta != null}">
 
-                            <thead >
+                            <thead>
                                 <tr class="border-b-2 border-teal-500">
                                     <th class="text-left py-3 px-4 text-teal-500 font-semibold">Cuenta</th>
                                     <th class="text-left py-3 px-4 text-teal-500 font-semibold"></th>
@@ -388,30 +388,33 @@
 
                                         const fInicio = document.getElementById("fechaInicio");
                                         const fFin = document.getElementById("fechaFin");
-
                                         function aplicarFiltrosFecha() {
 
                                             const inicio = fInicio.value;
                                             const fin = fFin.value;
-
-                                            let url = window.location.pathname;  // /cuentas/detalles/ID
+                                            let url = window.location.pathname; // /cuentas/detalles/ID
                                             let params = [];
+                                            console.log("fechaFin: ", fin);
+                                            if (new Date(inicio).getTime() > new Date(fin).getTime()) {
+                                                fInicio.value = "";
+                                                fFin.value = "";
+                                                mostrarAlerta("La fecha inicio no puede ser mayor que la fecha fin", 'warning');
+                                            } else {
+                                                if (inicio !== "")
+                                                    params.push("fechaInicio=" + inicio);
+                                                if (fin !== "")
+                                                    params.push("fechaFin=" + fin);
+                                                if (params.length > 0) {
+                                                    url += "?" + params.join("&");
+                                                }
 
-                                            if (inicio !== "")
-                                                params.push("fechaInicio=" + inicio);
-                                            if (fin !== "")
-                                                params.push("fechaFin=" + fin);
-
-                                            if (params.length > 0) {
-                                                url += "?" + params.join("&");
+                                                window.location.href = url;
                                             }
 
-                                            window.location.href = url;
                                         }
 
                                         fInicio.addEventListener("change", aplicarFiltrosFecha);
                                         fFin.addEventListener("change", aplicarFiltrosFecha);
-
                                     });
         </script>
 
@@ -420,7 +423,6 @@
             let cuentaIdSeleccionada = null;
             let cuentaActiva = null;
             let botonActual = null;
-
             document.addEventListener('click', function (e) {
                 if (e.target.hasAttribute('command') && e.target.getAttribute('command') === 'show-modal') {
                     botonActual = e.target;
@@ -429,8 +431,6 @@
                     actualizarModal(cuentaActiva);
                 }
             });
-
-
             function actualizarModal(esActiva) {
                 const dialogTitle = document.getElementById('dialog-title');
                 const dialogMessage = document.getElementById('dialog-message');
@@ -438,14 +438,12 @@
                 const dialogIcon = document.getElementById('dialog-icon');
                 const iconWarning = document.getElementById('icon-warning');
                 const iconCheck = document.getElementById('icon-check');
-
                 if (esActiva) {
                     // Configuración para DESACTIVAR
                     dialogTitle.textContent = 'Desactivar cuenta';
                     dialogMessage.textContent = '¿Seguro que desea desactivar esta cuenta?';
                     btnConfirmar.textContent = 'Desactivar';
                     btnConfirmar.className = 'inline-flex w-full justify-center rounded-md bg-red-600 hover:bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto';
-
                     dialogIcon.className = 'mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:size-10';
                     iconWarning.classList.remove('hidden');
                     iconCheck.classList.add('hidden');
@@ -455,7 +453,6 @@
                     dialogMessage.textContent = '¿Seguro que desea activar esta cuenta?';
                     btnConfirmar.textContent = 'Activar';
                     btnConfirmar.className = 'inline-flex w-full justify-center rounded-md bg-green-600 hover:bg-green-500 px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto';
-
                     dialogIcon.className = 'mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-green-100 sm:mx-0 sm:size-10';
                     iconWarning.classList.add('hidden');
                     iconCheck.classList.remove('hidden');
@@ -471,7 +468,6 @@
                 }
 
                 const nuevoEstado = !cuentaActiva;
-
                 fetch('/cuentas/desactivar-cuenta?id=' + cuentaIdSeleccionada, {
                     method: 'POST'
                 })
@@ -483,7 +479,6 @@
                         })
                         .then(data => {
                             console.log(data);
-
                             // Actualizar el botón sin recargar la página
                             if (nuevoEstado) {
                                 // Cambiar a ACTIVA
@@ -507,6 +502,16 @@
             }
         </script>
 
+        <script>
+
+            <c:if test="${transaccion != null}">
+            mostrarAlerta("${transaccion.mensaje}</br> Saldo anterior: $${transaccion.saldoAnterior} </br> Saldo actual: $${transaccion.saldoNuevo}", 'success');
+            </c:if>
+            <c:if test="${message != null}">
+                mostrarAlerta("${message.mensaje} ", 'error');
+            </c:if>
+        </script>
+
         <style>
             .alert-animation {
                 animation: slideIn 0.3s ease-out;
@@ -528,7 +533,6 @@
             function toggleDetails() {
                 const details = document.getElementById("movimientos");
                 const arrow = document.getElementById('arrow-cuenta');
-
                 if (details.classList.contains('active')) {
                     details.classList.remove('active');
                     arrow.classList.remove('rotate-180');

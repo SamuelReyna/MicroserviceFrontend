@@ -25,6 +25,18 @@
         </style>
     </head>
     <body>
+        <script src="${pageContext.request.contextPath}/alertas.js"></script>
+        <div id="alert-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+        <script>
+            <c:if test ="${messageSuccess != null}">
+            mostrarAlerta("La cuenta ${messageSuccess.numeroCuenta} ha sido creada éxitosamente", 'success');
+            </c:if>
+            <c:if test ="${messageError != null}">
+            mostrarAlerta("${messageError}", 'error');
+            </c:if>
+        </script>
+
         <div class="flex items-center justify-center min-h-screen bg-gray-50">
             <div class="w-full max-w-2xl px-4">
                 <!-- Breadcrumb con fondo -->
@@ -48,15 +60,12 @@
                     </ol>
                 </nav>
                 <h2 class="text-2xl font-bold mb-6 text-gray-700">Información de Cuentas</h2>
-                <button command="show-modal" commandfor="cuenta" 
-                        class="inline-flex items-center bg-teal-500 text-white text-sm py-1 px-3 rounded hover:bg-teal-600"                        >
-                    Añadir
-                </button>
+
                 <dialog id="cuenta" aria-labelledby="dialog-title" class="fixed inset-0 m-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent p-0 backdrop:bg-transparent">
                     <el-dialog-backdrop class="fixed inset-0 bg-gray-500/75 transition-opacity data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in"></el-dialog-backdrop>
                     <div tabindex="0" class="flex min-h-full items-end justify-center p-4 text-center focus:outline focus:outline-0 sm:items-center sm:p-0">
                         <el-dialog-panel class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-[closed]:translate-y-4 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:my-8 sm:w-full sm:max-w-lg data-[closed]:sm:translate-y-0 data-[closed]:sm:scale-95">
-                            <form:form id="form-retiro" method="POST" modelAttribute="cuenta" 
+                            <form:form id="form-cuenta" method="POST" modelAttribute="cuenta" 
                                        action="${pageContext.request.contextPath}/cuentas/add"
                                        enctype="multipart/form-data"
                                        class="space-y-4 mt-2">   
@@ -65,7 +74,7 @@
                                 <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
 
                                     <!-- Número de Cuenta -->
-                                    <div>
+                                    <div class="mb-4">
                                         <label for="numeroCuenta" class="block text-sm font-medium text-gray-700 mb-1">
                                             Número de Cuenta
                                         </label>
@@ -73,11 +82,39 @@
                                             type="text"
                                             id="numeroCuenta"
                                             name="numeroCuenta"
+                                            maxlength="11"
                                             class="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 shadow-sm 
-                                            focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                            placeholder="Ingresa el número de cuenta"
+                                            focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                                            placeholder="Ej: ABC12345678"
                                             required
                                             />
+
+                                        <!-- Mensaje de validación -->
+                                        <div id="mensajeValidacion" class="mt-2 text-sm hidden">
+                                            <p class="text-gray-600 mb-1">Formato requerido:</p>
+                                            <ul class="space-y-1">
+                                                <li id="validacionLetras" class="flex items-center">
+                                                    <span class="w-5 h-5 mr-2">⭕</span>
+                                                    <span>3 letras mayúsculas (A-Z)</span>
+                                                </li>
+                                                <li id="validacionNumeros" class="flex items-center">
+                                                    <span class="w-5 h-5 mr-2">⭕</span>
+                                                    <span>8 números (0-9)</span>
+                                                </li>
+                                                <li id="validacionTotal" class="flex items-center">
+                                                    <span class="w-5 h-5 mr-2">⭕</span>
+                                                    <span>Total: 11 caracteres</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                        <!-- Mensaje de éxito -->
+                                        <p id="mensajeExito" class="mt-2 text-sm text-green-600 font-medium hidden flex items-center">
+                                            <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                            </svg>
+                                            Número de cuenta válido
+                                        </p>
                                     </div>
 
                                     <!-- Tipo de Cuenta -->
@@ -92,9 +129,9 @@
                                             focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                             required>
                                             <option value="">Selecciona una opción</option>
-                                            <option value="Débito">Débito</option>
-                                            <option value="Crédito">Crédito</option>
-                                            <option value="Ahorro">Ahorro</option>
+                                            <option value="CORRIENTE">Corriente</option>
+                                            <option value="DÉBITO">Débito</option>
+                                            <option value="AHORROS">Ahorro</option>
                                         </select>
                                     </div>
 
@@ -135,9 +172,12 @@
                                 <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                                     <button 
                                         type="submit"
-                                        class="inline-flex w-full justify-center rounded-md bg-green-600 hover:bg-green-500 
-                                        px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto">
-                                        Guardar Cuenta
+                                        id="btnSubmit"
+                                        disabled
+                                        class="w-full ml-1 bg-green-600 text-white rounded-md px-3 py-2 font-medium 
+                                        hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
+                                        >
+                                        Crear Cuenta
                                     </button>
 
                                     <button 
@@ -157,7 +197,10 @@
                     </div>
                 </dialog>
                 <div class="flex gap-4 mb-6">
-
+                    <button command="show-modal" commandfor="cuenta" 
+                            class="inline-flex items-center bg-teal-500 text-white text-sm py-1 px-3 rounded hover:bg-teal-600"                        >
+                        Añadir
+                    </button>
                     <!-- FILTRO POR ESTADO -->
                     <select id="filtro-activa"
                             class="border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:ring-teal-500 focus:border-teal-500">
@@ -281,6 +324,106 @@
                 }
             }
 
+        </script>
+        <script>
+            const input = document.getElementById('numeroCuenta');
+            const mensajeValidacion = document.getElementById('mensajeValidacion');
+            const mensajeExito = document.getElementById('mensajeExito');
+            const validacionLetras = document.getElementById('validacionLetras');
+            const validacionNumeros = document.getElementById('validacionNumeros');
+            const validacionTotal = document.getElementById('validacionTotal');
+            const btnSubmit = document.getElementById('btnSubmit');
+
+            // Expresión regular: 3 letras mayúsculas + 8 números
+            const regexCompleto = /^[A-Z]{3}[0-9]{8}$/;
+            const regexLetras = /^[A-Z]{3}/;
+            const regexNumeros = /[0-9]{8}$/;
+
+            function actualizarIcono(elemento, valido) {
+                const icono = elemento.querySelector('span');
+                if (valido) {
+                    icono.textContent = '✅';
+                    elemento.classList.remove('text-gray-600');
+                    elemento.classList.add('text-green-600', 'font-medium');
+                } else {
+                    icono.textContent = '⭕';
+                    elemento.classList.remove('text-green-600', 'font-medium');
+                    elemento.classList.add('text-gray-600');
+                }
+            }
+
+            function validarCuenta(valor) {
+                // Mostrar mensaje de validación si hay texto
+                if (valor.length > 0) {
+                    mensajeValidacion.classList.remove('hidden');
+                } else {
+                    mensajeValidacion.classList.add('hidden');
+                    mensajeExito.classList.add('hidden');
+                    return;
+                }
+
+                // Validar cada criterio
+                const tieneLetras = regexLetras.test(valor);
+                const tieneNumeros = regexNumeros.test(valor) && valor.length === 11;
+                const longitudCorrecta = valor.length === 11;
+                const esValido = regexCompleto.test(valor);
+
+                actualizarIcono(validacionLetras, tieneLetras);
+                actualizarIcono(validacionNumeros, tieneNumeros);
+                actualizarIcono(validacionTotal, longitudCorrecta);
+
+                // Cambiar borde del input
+                if (esValido) {
+                    input.classList.remove('border-gray-300', 'border-red-500');
+                    input.classList.add('border-green-500');
+                    mensajeExito.classList.remove('hidden');
+                    mensajeValidacion.classList.add('hidden');
+                    btnSubmit.disabled = false;
+                } else {
+                    input.classList.remove('border-green-500');
+                    if (valor.length > 0) {
+                        input.classList.add('border-red-500');
+                    } else {
+                        input.classList.add('border-gray-300');
+                    }
+                    mensajeExito.classList.add('hidden');
+                    btnSubmit.disabled = true;
+                }
+
+                return esValido;
+            }
+
+            // Validar en tiempo real
+            input.addEventListener('input', function (e) {
+                let valor = e.target.value.toUpperCase();
+
+                // Forzar formato: solo letras al inicio y números después
+                valor = valor.replace(/[^A-Z0-9]/g, '');
+
+                e.target.value = valor;
+                validarCuenta(valor);
+            });
+
+            // Convertir a mayúsculas automáticamente
+            input.addEventListener('keyup', function (e) {
+                e.target.value = e.target.value.toUpperCase();
+            });
+
+            // Validar al enviar
+            document.getElementById('cuentaForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const numeroCuenta = input.value;
+
+                if (validarCuenta(numeroCuenta)) {
+                    mostarAlerta('✅ Cuenta válida: ' + numeroCuenta, 'success');
+
+                    // Aquí puedes enviar los datos al backend
+                    console.log('Número de cuenta válido:', numeroCuenta);
+                } else {
+                    mostrarAlerta('❌ Número de cuenta inválido. Debe tener 3 letras mayúsculas seguidas de 8 números.', 'warning');
+                }
+            });
         </script>
         <script>
             document.addEventListener("DOMContentLoaded", () => {

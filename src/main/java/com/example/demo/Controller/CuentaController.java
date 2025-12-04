@@ -4,6 +4,7 @@ import com.example.demo.Model.CrearCuenta;
 import com.example.demo.Model.Cuenta;
 import com.example.demo.Model.Movimiento;
 import com.example.demo.Utils.Util;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -184,7 +187,13 @@ public class CuentaController {
         RestTemplate restTemplate
                 = new RestTemplate();
         HttpEntity<CrearCuenta> entity = new HttpEntity<>(cuenta);
-
+        // Configurar para que NO lance excepciones en 4xx/5xx
+        restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
+            @Override
+            public boolean hasError(ClientHttpResponse response) throws IOException {
+                return false;
+            }
+        });
         ResponseEntity<Cuenta> responseEntity
                 = restTemplate.exchange(util.url + "/api/cuenta", HttpMethod.POST,
                         entity,
@@ -192,9 +201,9 @@ public class CuentaController {
                 });
 
         if (responseEntity.getStatusCode() == HttpStatusCode.valueOf(200)) {
-            redirectAttributes.addFlashAttribute("message", "Cuenta creada exitosamente");
+            redirectAttributes.addFlashAttribute("messageSuccess", responseEntity.getBody());
         } else {
-            redirectAttributes.addFlashAttribute("message", "Algo salió mal, intentalo nuevamente");
+            redirectAttributes.addFlashAttribute("messageError", "Algo salió mal, intente nuevamente");
         }
         return "redirect:/cuentas";
     }
